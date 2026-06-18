@@ -68,7 +68,7 @@ Kali Linux is assigned ```192.168.189.129``` on the same NAT subnet, with the ka
 
 ```Ip a```
 
-![Short Description](images/kali_ip .png)
+![Short Description](images/kali_ip.png)
 
 
 ### Install Splunk Enterprise on Kali Linux
