@@ -1,20 +1,20 @@
-#Adversary Emulation & Detection Lab
+# Adversary Emulation & Detection Lab
 
 
 
-###Objective
+### Objective
 The primary objective of this lab is to build and configure a functional adversary emulation and detection environment using virtualization and industry-standard security tools. Splunk Enterprise, Sysmon, and Splunk Universal Forwarder are installed and configured to establish a working SIEM infrastructure for log collection and analysis. Five specific Atomic Red Team attacks T1053.005, T1218.005, T1003.001, T1059.001, and T1112 are executed on the Windows Server using PowerShell. Effective SPL queries are crafted within Splunk to detect each attack based on behavioral indicators rather than simple keyword searches. The most helpful Sysmon Event IDs for each detection scenario are identified and documented. This exercise demonstrates the application of the MITRE ATT&CK framework in a practical lab setting.
 
 
 
-###Lab Environment
+### Lab Environment
 | Host | Role | Operating System | IP Address | Key Software |
 | :--- | :--- | :--- | :--- | :--- |
 | Kali Linux | Control & SIEM | Kali Linux | 192.168.189.129 | Splunk Enterprise (web 8000, mgmt 8089, receiving 9997) |
 | Windows Server | Victim & Telemetry | Windows Server 2019 | 192.168.189.130 | Sysmon, Splunk Universal Forwarder, Invoke-AtomicRedTeam |
 
 
-###Tools Used
+### Tools Used
 VMware Workstation Pro
 Splunk Enterprise (SIEM)
 Splunk Universal Forwarder
@@ -26,7 +26,7 @@ Git
 
 
 
-###Virtual Machine Specification
+### Virtual Machine Specification
 
 | VM | CPU (Core) | RAM (GB) | Network Type |
 | :--- | :--- | :--- | :--- |
@@ -36,28 +36,28 @@ Git
 Note: This is minimum requirement. For better performance, increase the allocated RAM.
 
 
-##Part 1 – The Infrastructure Setup
+## Part 1 – The Infrastructure Setup
 
 ![Short Description](images/network_infra.png)
  
 The lab runs two virtual machines on an isolated VMware NAT network (192.168.11.0/24). Kali Linux (192.168.189.129) hosts Splunk Enterprise as the SIEM/indexer. Windows Server 2019 (192.168.189.130) is the instrumented victim running Sysmon, a Splunk Universal Forwarder, and Atomic Red Team (the attack toolkit). Sysmon telemetry flows from the Windows Server to Splunk over port 9997, and analysis is performed through Splunk Web (port 8000).
 
 
-###Kali Linux Settings
+### Kali Linux Settings
 Kali VM – 2 vCPU, 2 GB RAM, NAT network adapter.
  
 ![Short Description](images/kali_vmware.png)
 
-###Windows Server Settings
+### Windows Server Settings
 Windows Server 2019 VM – 2 vCPU, 2 GB RAM, NAT network adapter. This is the victim host (Sysmon, Splunk Universal Forwarder, Atomic Red Team)
 
 ![Short Description](images/windows_vmware.png)
  
 
 
-###Network Settings of Windows Server & Kali Linux
+### Network Settings of Windows Server & Kali Linux
 
-Windows Server is assigned ```192.168.189.130.
+Windows Server is assigned ```192.168.189.130```.
 Verify with:
 ```ipconfig
 ![Short Description](images/windows_ip.png)
