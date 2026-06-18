@@ -139,73 +139,79 @@ Create an inputs.conf that forwards the relevant Windows event channels into the
 disabled = false
 renderXml = true
 index = main
-![Short Description](images/input_config.png)
+![Short Description](images/input_config.png)```
  
 
-###Restart the forwarder and confirm the monitored inputs:
+### Restart the forwarder and confirm the monitored inputs:
 ```powershell
 .\splunk.exe restart
-.\splunk.exe list monitor
+.\splunk.exe list monitor```
 
 
-##PART 2 : The Attack (Red Team)
+## PART 2 : The Attack (Red Team)
 Each technique is first listed with -ShowDetailsBrief, then executed with Invoke-AtomicTest. Use -GetPrereqs to download any required tools (e.g. procdump), and -Cleanup afterwards to revert changes. Run every command in an elevated PowerShell session.
 
-###Invoke-AtomicRedTeam setup
+### Invoke-AtomicRedTeam setup
 
 1. Install the Core Execution Framework
 ```powershell
-IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1')
+IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1')```
 ```powershell
-Install-AtomicRedTeam -InstallPath "C:\AtomicRedTeam" 
+Install-AtomicRedTeam -InstallPath "C:\AtomicRedTeam" ```
 
 2. Download the Attack Test Library (Atomics)
 ```powershell
--Install-AtomicRedTeam -AtomicsFolder "C:\AtomicRedTeam\atomics" -NoExecutionPolicyProfiles
+-Install-AtomicRedTeam -AtomicsFolder "C:\AtomicRedTeam\atomics" -NoExecutionPolicyProfiles```
 
 3. Load the Module into your Session
 ```powershell
-Import-Module "C:\AtomicRedTeam\invoke-atomicredteam\Invoke-AtomicRedTeam.psm1" -Force
+Import-Module "C:\AtomicRedTeam\invoke-atomicredteam\Invoke-AtomicRedTeam.psm1" -Force```
 
-###Five Attacks-
+### Five Attacks-
 
-2.1 T1053.005 — Scheduled Task (Persistence)
+### 2.1 T1053.005 — Scheduled Task (Persistence)
 ```powershell
 Invoke-AtomicTest T1053.005 -ShowDetailsBrief
-Invoke-AtomicTest T1053.005 -TestNumbers 1
+Invoke-AtomicTest T1053.005 -TestNumbers 1```
 ![Short Description](images/attack1red.png) 
 Creates a scheduled task that runs a hidden script. (Test 1 — Scheduled Task Startup Script.)
 
 
-2.2 T1218.005 — MSHTA (Defense Evasion)
+### 2.2 T1218.005 — MSHTA (Defense Evasion)
 ```powershell
 Invoke-AtomicTest T1218.005 -ShowDetailsBrief
-Invoke-AtomicTest T1218.005 -TestNumbers 1
+Invoke-AtomicTest T1218.005 -TestNumbers 1```
+
 ![Short Description](images/attack2red.png)
 Uses mshta.exe to execute a remote .hta payload, bypassing application control. (Test 1 — Mshta executes JavaScript Scheme Fetch Remote Payload.)
 
 
-2.3 T1003.001 — LSASS Dumping (Credential Access)
+### 2.3 T1003.001 — LSASS Dumping (Credential Access)
 ```powershell
 Invoke-AtomicTest T1003.001 -ShowDetailsBrief
 Invoke-AtomicTest T1003.001 -TestNumbers 1 -GetPrereqs
-Invoke-AtomicTest T1003.001 -TestNumbers 1
+Invoke-AtomicTest T1003.001 -TestNumbers 1```
+
 ![Short Description](images/attack3red.png)
 Uses procdump to dump LSASS memory and steal credentials. (Test 1 — Dump LSASS.exe Memory using ProcDump.)
 
 
-2.4 T1059.001 — PowerShell Download (Execution)
+### 2.4 T1059.001 — PowerShell Download (Execution)
 ```powershell
 Invoke-AtomicTest T1059.001 -ShowDetailsBrief
-Invoke-AtomicTest T1059.001 -TestNumbers 1
+Invoke-AtomicTest T1059.001 -TestNumbers 1```
+
 ![Short Description](images/attack4red.png)
+
 Downloads and executes a script from the web using a PowerShell download cradle.
 
-2.5 T1112 — Modify Registry (Defense Evasion)
+### 2.5 T1112 — Modify Registry (Defense Evasion)
 ```powershell
 Invoke-AtomicTest T1112 -ShowDetailsBrief
-Invoke-AtomicTest T1112 -TestNumbers 2
+Invoke-AtomicTest T1112 -TestNumbers 2```
+
 ![Short Description](images/attack5red.png)
+
 Alters or disables native Windows Defender real-time monitoring and security tracking policies via command-line registry modification utilities (Test 2). This prevents the host security subsystem from alerting on subsequent adversarial activity.
 
 
@@ -217,7 +223,8 @@ Logging into Splunk Web on Kali (http://192.168.189.129:8000), each of the five 
 ###3.1 T1053.005 — Scheduled Task (Persistence)
 Detect creation of a scheduled task via the schtasks.exe process and its /create command line. Event ID 7.
 ```
-index=* host="WIN-9M4ORG57EGF" "schtasks.exe"
+index=* host="WIN-9M4ORG57EGF" "schtasks.exe"```
+
 ![Short Description](images/attack1blue.png)
  
 Most Useful Event ID: Looking at Event ID 7 gives defenders a major advantage during an investigation. Even if an advanced attacker attempts to hide or clear their Process Creation logs (Event ID 1), or uses a renamed version of the command-line utility to bypass basic rule alerts, they cannot stop the program from loading the required system DLLs (taskschd.dll) to talk to the Task Scheduler service. Tracking the loading of this specific module provides a highly reliable,
@@ -226,36 +233,41 @@ Most Useful Event ID: Looking at Event ID 7 gives defenders a major advantage du
 
 Detect mshta.exe executing a remote .hta / inline script to bypass application control. Event id 13.
 ```
-index=* host="WIN-9M4ORG57EGF" "mshta.exe"
+index=* host="WIN-9M4ORG57EGF" "mshta.exe"```
+
 ![Short Description](images/attack2blue.png)
  
 Most Useful Event ID: Sysmon Event ID 13 is explicitly used for Registry Value Set events (when a registry key value is created or modified). It doesn't actually log the execution of a file like mshta.exe or track network connections. Instead, the most useful Event ID for detecting an MSHTA inline or remote script attack is Sysmon Event ID 1 (Process Creation) or Sysmon Event ID 3 (Network Connection).
 
-###3.3 T1003.001 — LSASS Memory Dumping (Credential Access)
+### 3.3 T1003.001 — LSASS Memory Dumping (Credential Access)
 Detect a process opening LSASS memory (e.g. procdump) to steal credentials. Event Id 10
 ```
-index=* host="WIN-9M4ORG57EGF" "procdump*"
+index=* host="WIN-9M4ORG57EGF" "procdump*"```
+
 ![Short Description](images/attack3blue.png) 
 
 Most useful Event ID: Sysmon Event ID 10 (Process Access). A non-system SourceImage opening lsass.exe with GrantedAccess such as 0x1010 or 0x1410 is the genuine credential-theft behaviour — far more reliable than matching the tool name.
 
-###7.4 T1059.001 — PowerShell Download Cradle (Execution)
+### 3.4 T1059.001 — PowerShell Download Cradle (Execution)
 Detect PowerShell downloading and executing a remote script. Event ID 1.
 ```
-index=* host="WIN-9M4ORG57EGF" “powershell”  "Download"
+index=* host="WIN-9M4ORG57EGF" “powershell”  "Download"```
+
 ![Short Description](images/attack4blue.png) 
  
 Most useful Event ID: Sysmon Event ID 1 (Process Create) for the command line, complemented by PowerShell Event ID 4104 (Script Block Logging), which captures the de-obfuscated download cradle.
 
-###3.5 T1112 — Modify Registry (Defense Evasion)
+### 3.5 T1112 — Modify Registry (Defense Evasion)
 Detect suspicious registry value writes. Defender tamper keys, credential-storage keys, or Internet Explorer Trusted-Sites entries. Event ID: 13.
 ```
-index=* host="WIN-9M4ORG57EGF" "reg.exe"
+index=* host="WIN-9M4ORG57EGF" "reg.exe"```
+
 ![Short Description](images/attack5blue.png) 
  
 Most useful Event ID: Sysmon Event ID 13 (Registry Value Set). It records the exact registry key and value written Defender, credential-storage or Trusted-Sites keys and the process that set it.
 
 ###Sysmon Event ID Summary & Conclusion
+
 The table below records, for each of the five techniques, the Sysmon (or Windows) Event ID that proved most useful for detection and the reason it was decisive.
 | Technique | Attack | Most Useful Event IDs | Why it was decisive |
 | :--- | :--- | :--- | :--- |
