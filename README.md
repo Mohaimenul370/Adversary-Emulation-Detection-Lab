@@ -59,17 +59,15 @@ Windows Server 2019 VM – 2 vCPU, 2 GB RAM, NAT network adapter. This is the vi
 
 ### Network Settings of Windows Server & Kali Linux
 
-Windows Server is assigned ```192.168.189.130```.
-Verify with:
-```ipconfig
-```
+Windows Server is assigned ```192.168.189.130```.<br>
+Verify with:```ipconfig```
 
 ![Short Description](images/windows_ip.png)
  
 Kali Linux is assigned ```192.168.189.129``` on the same NAT subnet, with the kali Splunk server reachable on ports 9997 (data)
 
-```Ip a
-```
+```Ip a```
+
 ![Short Description](images/kali_ip.png)
 
 
@@ -101,8 +99,8 @@ sudo /opt/splunk/bin/splunk status
  
 
 Step 5: Access Splunk Web Interface
-```https:// 127.0.0.1:8000
-```
+```https:// 127.0.0.1:8000```
+
 ![Short Description](images/splunk_webInterface.png)
 
 Step 6: Enable receiving on port 9997
@@ -184,7 +182,8 @@ Each technique is first listed with -ShowDetailsBrief, then executed with Invoke
 IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1')
 ```
 ```powershell
-Install-AtomicRedTeam -InstallPath "C:\AtomicRedTeam" ```
+Install-AtomicRedTeam -InstallPath "C:\AtomicRedTeam"
+```
 
 2. Download the Attack Test Library (Atomics)
 ```powershell
