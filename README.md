@@ -59,79 +59,79 @@ Windows Server 2019 VM – 2 vCPU, 2 GB RAM, NAT network adapter. This is the vi
 
 Windows Server is assigned ```192.168.189.130```.
 Verify with:
-```ipconfig
+```ipconfig```
 ![Short Description](images/windows_ip.png)
  
 Kali Linux is assigned ```192.168.189.129 on the same NAT subnet, with the kali Splunk server reachable on ports 9997 (data)
-```Ip a
+```Ip a```
 ![Short Description](images/kali_ip.png)
 
 
-###Install Splunk Enterprise on Kali Linux
+### Install Splunk Enterprise on Kali Linux
 Kali Linux (192.168.189.129) acts as the SIEM. Create a free Splunk  account, download the Splunk Enterprise Linux package, then install and start it.
 Step 1: Download Splunk Enterprise
 ```splunk
-wget -O splunk.tgz "https://download.splunk.com/products/splunk/releases/9.4.3/linux/splunk-9.4.3-eab2f2db5f3b-linux-amd64.tgz"
+wget -O splunk.tgz "https://download.splunk.com/products/splunk/releases/9.4.3/linux/splunk-9.4.3-eab2f2db5f3b-linux-amd64.tgz"```
 
 Step 2: Extract Splunk
 ```splunk
-sudo tar -xvzf splunk.tgz -C /opt
+sudo tar -xvzf splunk.tgz -C /opt```
 
 Step 3: Start Splunk for the First Time
 ```splunk
-sudo /opt/splunk/bin/splunk start --accept-license
+sudo /opt/splunk/bin/splunk start --accept-license```
 
 Step 4: Check Splunk Status
 ```splunk
-sudo /opt/splunk/bin/splunk status
+sudo /opt/splunk/bin/splunk status```
 ![Short Description](images/splunk_setup_kali.png)
  
 
 Step 5: Access Splunk Web Interface
-```https:// 127.0.0.1:8000
-![Short Description](images/splunk_webInterface.png) 
+```https:// 127.0.0.1:8000```
+![Short Description](images/splunk_webInterface.png)
 
 Step 6: Enable receiving on port 9997
 ```splunk
-sudo /opt/splunk/bin/splunk enable listen 9997 -auth admin:<password>
+sudo /opt/splunk/bin/splunk enable listen 9997 -auth admin:<password>```
 ![Short Description](images/portset_9997.png)
  
 
-###Sysmon & Splunk Universal Forwarder Install in Windows Server
+### Sysmon & Splunk Universal Forwarder Install in Windows Server
 Install and configure Sysmon, download Sysmon from Sysinternals and a detection-focused configuration (the Wazuh sysmonconfig.xml referenced in the task sheet).
 ```powershell
 cd C:\Lab\Sysmon
-.\sysmon64.exe -accepteula -i sysmonconfig.xml
+.\sysmon64.exe -accepteula -i sysmonconfig.xml```
 
 Verify the driver and service are running, and reload the config later with -c if you edit it:
 ```powershell
 Get-Service Sysmon64
-.\sysmon64.exe -c sysmonconfig.xml
+.\sysmon64.exe -c sysmonconfig.xml```
 
 Check Sysmon is properly installed or not. 
 ```powershell
-Get-Service -Name “Sysmon*”
+Get-Service -Name “Sysmon*”```
 ![Short Description](images/sysmon_forwarder_status.png) 
 
-###Install the Splunk Universal Forwarder
+### Install the Splunk Universal Forwarder
 Download and run the Splunk Universal Forwarder MSI. During setup choose “An on-premises Splunk Enterprise instance”, and point the Receiving Indexer / Deployment Server at the Kali Splunk server: 192.168.189.129 (receiving 9997). Set an admin username and password when prompted.
 
 Step1: Download Splunk Universal Forwarder
 ```powershell
-cd C:\Downloads
+cd C:\Downloads```
 
 Step 2: Install the Forwarder:
 ```powershell
-msiexec.exe /i splunkforwarder-*.msi AGREETOLICENSE=Yes RECEIVING_INDEXER="192.168.189.29:9997" WINEVENTLOG_SEC_ENABLE=1 WINEVENTLOG_SYS_ENABLE=1 WINEVENTLOG_APP_ENABLE=1 LAUNCHSPLUNK=1 /quiet
+msiexec.exe /i splunkforwarder-*.msi AGREETOLICENSE=Yes RECEIVING_INDEXER="192.168.189.29:9997" WINEVENTLOG_SEC_ENABLE=1 WINEVENTLOG_SYS_ENABLE=1 WINEVENTLOG_APP_ENABLE=1 LAUNCHSPLUNK=1 /quiet```
 
 Step 3: Verify Installation
 ```powershell
-Get-Service SplunkForwarder
+Get-Service SplunkForwarder```
 ![Short Description](images/sysmon_forwarder_status.png)
  
 
 
-###Configure Inputs 
+### Configure Inputs 
 Create an inputs.conf that forwards the relevant Windows event channels into the win index. Place it at C:\Program Files\SplunkUniversalForwarder\etc\apps\TA-local-sysmon\local\inputs.conf:
 
 ```notepad
