@@ -15,13 +15,14 @@ The primary objective of this lab is to build and configure a functional adversa
 
 
 ### Tools Used
-VMware Workstation Pro
-Splunk Enterprise (SIEM)
-Splunk Universal Forwarder
-Sysmon
-Atomic Red Team (ART)
-PowerShell
-MITRE ATT&CK
+
+VMware Workstation Pro<br>
+Splunk Enterprise (SIEM)<br>
+Splunk Universal Forwarder<br>
+Sysmon<br>
+Atomic Red Team (ART)<br>
+PowerShell<br>
+MITRE ATT&CK<br>
 Git
 
 
@@ -44,6 +45,7 @@ The lab runs two virtual machines on an isolated VMware NAT network (192.168.11.
 
 
 ### Kali Linux Settings
+
 Kali VM – 2 vCPU, 2 GB RAM, NAT network adapter.
  
 ![Short Description](images/kali_vmware.png)
@@ -60,40 +62,53 @@ Windows Server 2019 VM – 2 vCPU, 2 GB RAM, NAT network adapter. This is the vi
 Windows Server is assigned ```192.168.189.130```.
 Verify with:
 ```ipconfig```
+
 ![Short Description](images/windows_ip.png)
  
 Kali Linux is assigned ```192.168.189.129 on the same NAT subnet, with the kali Splunk server reachable on ports 9997 (data)
-```Ip a```
+
+```Ip a
+```
 ![Short Description](images/kali_ip.png)
 
 
 ### Install Splunk Enterprise on Kali Linux
+
 Kali Linux (192.168.189.129) acts as the SIEM. Create a free Splunk  account, download the Splunk Enterprise Linux package, then install and start it.
+
 Step 1: Download Splunk Enterprise
 ```splunk
-wget -O splunk.tgz "https://download.splunk.com/products/splunk/releases/9.4.3/linux/splunk-9.4.3-eab2f2db5f3b-linux-amd64.tgz"```
+wget -O splunk.tgz "https://download.splunk.com/products/splunk/releases/9.4.3/linux/splunk-9.4.3-eab2f2db5f3b-linux-amd64.tgz"
+```
 
 Step 2: Extract Splunk
 ```splunk
-sudo tar -xvzf splunk.tgz -C /opt```
+sudo tar -xvzf splunk.tgz -C /opt
+```
 
 Step 3: Start Splunk for the First Time
 ```splunk
-sudo /opt/splunk/bin/splunk start --accept-license```
+sudo /opt/splunk/bin/splunk start --accept-license
+```
 
 Step 4: Check Splunk Status
 ```splunk
-sudo /opt/splunk/bin/splunk status```
+sudo /opt/splunk/bin/splunk status
+```
+
 ![Short Description](images/splunk_setup_kali.png)
  
 
 Step 5: Access Splunk Web Interface
-```https:// 127.0.0.1:8000```
+```https:// 127.0.0.1:8000
+```
 ![Short Description](images/splunk_webInterface.png)
 
 Step 6: Enable receiving on port 9997
 ```splunk
-sudo /opt/splunk/bin/splunk enable listen 9997 -auth admin:<password>```
+sudo /opt/splunk/bin/splunk enable listen 9997 -auth admin:<password>
+```
+
 ![Short Description](images/portset_9997.png)
  
 
@@ -101,37 +116,45 @@ sudo /opt/splunk/bin/splunk enable listen 9997 -auth admin:<password>```
 Install and configure Sysmon, download Sysmon from Sysinternals and a detection-focused configuration (the Wazuh sysmonconfig.xml referenced in the task sheet).
 ```powershell
 cd C:\Lab\Sysmon
-.\sysmon64.exe -accepteula -i sysmonconfig.xml```
+.\sysmon64.exe -accepteula -i sysmonconfig.xml
+```
 
 Verify the driver and service are running, and reload the config later with -c if you edit it:
 ```powershell
 Get-Service Sysmon64
-.\sysmon64.exe -c sysmonconfig.xml```
+.\sysmon64.exe -c sysmonconfig.xml
+```
 
 Check Sysmon is properly installed or not. 
 ```powershell
-Get-Service -Name “Sysmon*”```
+Get-Service -Name “Sysmon*”
+```
 ![Short Description](images/sysmon_forwarder_status.png) 
 
 ### Install the Splunk Universal Forwarder
+
 Download and run the Splunk Universal Forwarder MSI. During setup choose “An on-premises Splunk Enterprise instance”, and point the Receiving Indexer / Deployment Server at the Kali Splunk server: 192.168.189.129 (receiving 9997). Set an admin username and password when prompted.
 
 Step1: Download Splunk Universal Forwarder
 ```powershell
-cd C:\Downloads```
+cd C:\Downloads
+```
 
 Step 2: Install the Forwarder:
 ```powershell
-msiexec.exe /i splunkforwarder-*.msi AGREETOLICENSE=Yes RECEIVING_INDEXER="192.168.189.29:9997" WINEVENTLOG_SEC_ENABLE=1 WINEVENTLOG_SYS_ENABLE=1 WINEVENTLOG_APP_ENABLE=1 LAUNCHSPLUNK=1 /quiet```
+msiexec.exe /i splunkforwarder-*.msi AGREETOLICENSE=Yes RECEIVING_INDEXER="192.168.189.29:9997" WINEVENTLOG_SEC_ENABLE=1 WINEVENTLOG_SYS_ENABLE=1 WINEVENTLOG_APP_ENABLE=1 LAUNCHSPLUNK=1 /quiet
+```
 
 Step 3: Verify Installation
 ```powershell
-Get-Service SplunkForwarder```
+Get-Service SplunkForwarder
+```
 ![Short Description](images/sysmon_forwarder_status.png)
  
 
 
 ### Configure Inputs 
+
 Create an inputs.conf that forwards the relevant Windows event channels into the win index. Place it at C:\Program Files\SplunkUniversalForwarder\etc\apps\TA-local-sysmon\local\inputs.conf:
 
 ```notepad
@@ -139,13 +162,15 @@ Create an inputs.conf that forwards the relevant Windows event channels into the
 disabled = false
 renderXml = true
 index = main
-![Short Description](images/input_config.png)```
+![Short Description](images/input_config.png)
+```
  
 
 ### Restart the forwarder and confirm the monitored inputs:
 ```powershell
 .\splunk.exe restart
-.\splunk.exe list monitor```
+.\splunk.exe list monitor
+```
 
 
 ## PART 2 : The Attack (Red Team)
@@ -155,34 +180,42 @@ Each technique is first listed with -ShowDetailsBrief, then executed with Invoke
 
 1. Install the Core Execution Framework
 ```powershell
-IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1')```
+IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1')
+```
 ```powershell
 Install-AtomicRedTeam -InstallPath "C:\AtomicRedTeam" ```
 
 2. Download the Attack Test Library (Atomics)
 ```powershell
--Install-AtomicRedTeam -AtomicsFolder "C:\AtomicRedTeam\atomics" -NoExecutionPolicyProfiles```
+-Install-AtomicRedTeam -AtomicsFolder "C:\AtomicRedTeam\atomics" -NoExecutionPolicyProfiles
+```
 
 3. Load the Module into your Session
 ```powershell
-Import-Module "C:\AtomicRedTeam\invoke-atomicredteam\Invoke-AtomicRedTeam.psm1" -Force```
+Import-Module "C:\AtomicRedTeam\invoke-atomicredteam\Invoke-AtomicRedTeam.psm1" -Force
+```
 
 ### Five Attacks-
 
 ### 2.1 T1053.005 — Scheduled Task (Persistence)
 ```powershell
 Invoke-AtomicTest T1053.005 -ShowDetailsBrief
-Invoke-AtomicTest T1053.005 -TestNumbers 1```
+Invoke-AtomicTest T1053.005 -TestNumbers 1
+```
+
 ![Short Description](images/attack1red.png) 
+
 Creates a scheduled task that runs a hidden script. (Test 1 — Scheduled Task Startup Script.)
 
 
 ### 2.2 T1218.005 — MSHTA (Defense Evasion)
 ```powershell
 Invoke-AtomicTest T1218.005 -ShowDetailsBrief
-Invoke-AtomicTest T1218.005 -TestNumbers 1```
+Invoke-AtomicTest T1218.005 -TestNumbers 1
+```
 
 ![Short Description](images/attack2red.png)
+
 Uses mshta.exe to execute a remote .hta payload, bypassing application control. (Test 1 — Mshta executes JavaScript Scheme Fetch Remote Payload.)
 
 
@@ -190,16 +223,19 @@ Uses mshta.exe to execute a remote .hta payload, bypassing application control. 
 ```powershell
 Invoke-AtomicTest T1003.001 -ShowDetailsBrief
 Invoke-AtomicTest T1003.001 -TestNumbers 1 -GetPrereqs
-Invoke-AtomicTest T1003.001 -TestNumbers 1```
+Invoke-AtomicTest T1003.001 -TestNumbers 1
+```
 
 ![Short Description](images/attack3red.png)
+
 Uses procdump to dump LSASS memory and steal credentials. (Test 1 — Dump LSASS.exe Memory using ProcDump.)
 
 
 ### 2.4 T1059.001 — PowerShell Download (Execution)
 ```powershell
 Invoke-AtomicTest T1059.001 -ShowDetailsBrief
-Invoke-AtomicTest T1059.001 -TestNumbers 1```
+Invoke-AtomicTest T1059.001 -TestNumbers 1
+```
 
 ![Short Description](images/attack4red.png)
 
@@ -208,7 +244,8 @@ Downloads and executes a script from the web using a PowerShell download cradle.
 ### 2.5 T1112 — Modify Registry (Defense Evasion)
 ```powershell
 Invoke-AtomicTest T1112 -ShowDetailsBrief
-Invoke-AtomicTest T1112 -TestNumbers 2```
+Invoke-AtomicTest T1112 -TestNumbers 2
+```
 
 ![Short Description](images/attack5red.png)
 
@@ -216,24 +253,26 @@ Alters or disables native Windows Defender real-time monitoring and security tra
 
 
 
-##PART 3: The Detection (Blue Team)
+## PART 3: The Detection (Blue Team)
 
 Logging into Splunk Web on Kali (http://192.168.189.129:8000), each of the five attacks is hunted using behaviour-based SPL — never by searching for the word “Atomic”.
 
-###3.1 T1053.005 — Scheduled Task (Persistence)
+### 3.1 T1053.005 — Scheduled Task (Persistence)
 Detect creation of a scheduled task via the schtasks.exe process and its /create command line. Event ID 7.
 ```
-index=* host="WIN-9M4ORG57EGF" "schtasks.exe"```
+index=* host="WIN-9M4ORG57EGF" "schtasks.exe"
+```
 
 ![Short Description](images/attack1blue.png)
  
 Most Useful Event ID: Looking at Event ID 7 gives defenders a major advantage during an investigation. Even if an advanced attacker attempts to hide or clear their Process Creation logs (Event ID 1), or uses a renamed version of the command-line utility to bypass basic rule alerts, they cannot stop the program from loading the required system DLLs (taskschd.dll) to talk to the Task Scheduler service. Tracking the loading of this specific module provides a highly reliable,
 
-###3.2 T1218.005 — MSHTA (Defense Evasion)
+### 3.2 T1218.005 — MSHTA (Defense Evasion)
 
 Detect mshta.exe executing a remote .hta / inline script to bypass application control. Event id 13.
 ```
-index=* host="WIN-9M4ORG57EGF" "mshta.exe"```
+index=* host="WIN-9M4ORG57EGF" "mshta.exe"
+```
 
 ![Short Description](images/attack2blue.png)
  
@@ -242,7 +281,8 @@ Most Useful Event ID: Sysmon Event ID 13 is explicitly used for Registry Value S
 ### 3.3 T1003.001 — LSASS Memory Dumping (Credential Access)
 Detect a process opening LSASS memory (e.g. procdump) to steal credentials. Event Id 10
 ```
-index=* host="WIN-9M4ORG57EGF" "procdump*"```
+index=* host="WIN-9M4ORG57EGF" "procdump*"
+```
 
 ![Short Description](images/attack3blue.png) 
 
@@ -251,7 +291,8 @@ Most useful Event ID: Sysmon Event ID 10 (Process Access). A non-system SourceIm
 ### 3.4 T1059.001 — PowerShell Download Cradle (Execution)
 Detect PowerShell downloading and executing a remote script. Event ID 1.
 ```
-index=* host="WIN-9M4ORG57EGF" “powershell”  "Download"```
+index=* host="WIN-9M4ORG57EGF" “powershell”  "Download"
+```
 
 ![Short Description](images/attack4blue.png) 
  
@@ -260,13 +301,14 @@ Most useful Event ID: Sysmon Event ID 1 (Process Create) for the command line, c
 ### 3.5 T1112 — Modify Registry (Defense Evasion)
 Detect suspicious registry value writes. Defender tamper keys, credential-storage keys, or Internet Explorer Trusted-Sites entries. Event ID: 13.
 ```
-index=* host="WIN-9M4ORG57EGF" "reg.exe"```
+index=* host="WIN-9M4ORG57EGF" "reg.exe"
+```
 
 ![Short Description](images/attack5blue.png) 
  
 Most useful Event ID: Sysmon Event ID 13 (Registry Value Set). It records the exact registry key and value written Defender, credential-storage or Trusted-Sites keys and the process that set it.
 
-###Sysmon Event ID Summary & Conclusion
+### Sysmon Event ID Summary & Conclusion
 
 The table below records, for each of the five techniques, the Sysmon (or Windows) Event ID that proved most useful for detection and the reason it was decisive.
 | Technique | Attack | Most Useful Event IDs | Why it was decisive |
