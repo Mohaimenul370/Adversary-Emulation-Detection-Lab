@@ -61,11 +61,12 @@ Windows Server 2019 VM – 2 vCPU, 2 GB RAM, NAT network adapter. This is the vi
 
 Windows Server is assigned ```192.168.189.130```.
 Verify with:
-```ipconfig```
+```ipconfig
+```
 
 ![Short Description](images/windows_ip.png)
  
-Kali Linux is assigned ```192.168.189.129 on the same NAT subnet, with the kali Splunk server reachable on ports 9997 (data)
+Kali Linux is assigned ```192.168.189.129``` on the same NAT subnet, with the kali Splunk server reachable on ports 9997 (data)
 
 ```Ip a
 ```
